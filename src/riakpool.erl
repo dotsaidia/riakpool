@@ -174,13 +174,17 @@ next_pid(Host, Port, Pids, NoOfConnections) ->
             end;
         false ->
             {{value, Pid}, NewPids} = queue:out(Pids),
-            case riakc_pb_socket:is_connected(Pid) of
+            try riakc_pb_socket:is_connected(Pid) of
                 true -> 
-                    % A connection can be used for several request at a time
+                    % A connection can be used for several requests at a time
                     {ok, Pid, queue:in(Pid, NewPids), NoOfConnections};
                 {false, _List} ->
-                    % Means connection is dead so we kick it off
+                    % Means the connection has failed to be established, but the process is alive.
+                    % We kick it off.
                     ok = riakc_pb_socket:stop(Pid),
                     next_pid(Host, Port, NewPids, NoOfConnections - 1)
+            catch _:_ ->
+                % Means the connection process is dead, so we kick it off
+                next_pid(Host, Port, NewPids, NoOfConnections - 1)
             end
     end.
