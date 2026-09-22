@@ -89,9 +89,6 @@
 
 -type host() :: string() | atom().
 
--type waiter() :: gen_server:from().
-
-
 %% -------------------------------------------------------------------
 %% State
 %% -------------------------------------------------------------------
@@ -707,7 +704,7 @@ checkout_connection(
         #state{}
     }.
 checkout_without_available(
-    From,
+    _From,
     State = #state{
         host = Host,
         port = Port,
